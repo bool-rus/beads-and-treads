@@ -131,9 +131,11 @@ fn main() {
             size: (550, 480),
             resizable: true,
             decorations: true,
+            ..Default::default()
         },
         flags: (),
         default_font: None,
         antialiasing: false,
-    });
+        ..Default::default()
+    }).unwrap()
 }

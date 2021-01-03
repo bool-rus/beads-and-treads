@@ -36,7 +36,7 @@ impl SvgButton {
             state: Default::default()
         }
     }
-    pub fn button<M>(&mut self) -> Button<'_, M> {
+    pub fn button<M: Clone>(&mut self) -> Button<'_, M> {
         Button::new(&mut self.state, self.icon.svg())
     }
 }

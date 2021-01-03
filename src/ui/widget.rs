@@ -1,7 +1,8 @@
-use iced_native::{Widget, layout, Layout, MouseCursor, Event, Clipboard, Hasher};
+use iced_native::{Widget, layout, Layout, event, Event, Clipboard, Hasher};
 use iced_wgpu::{Primitive, Renderer, Defaults};
-use iced_native::input::{mouse, ButtonState};
-use iced::{Size, Color, Element, Length, Point, Background};
+use iced::mouse::Interaction;
+use iced::mouse;
+use iced::{Background, Color, Element, Length, Point, Rectangle, Size};
 use crate::wrapper::Wrappable;
 use std::hash::Hash;
 use iced_wgpu::triangle::{Mesh2D, Vertex2D};
@@ -47,6 +48,7 @@ impl <T> ColorBox<T> {
         self
     }
 }
+
 impl<Message:Clone> Widget<Message, Renderer> for ColorBox<Message> {
     fn width(&self) -> Length {
         self.width
@@ -62,7 +64,6 @@ impl<Message:Clone> Widget<Message, Renderer> for ColorBox<Message> {
         limits: &layout::Limits,
     ) -> layout::Node {
         let limits = limits.width(self.width).height(self.height);
-
         layout::Node::new(limits.resolve(Size::ZERO))
     }
 
@@ -72,16 +73,17 @@ impl<Message:Clone> Widget<Message, Renderer> for ColorBox<Message> {
         _defaults: &Defaults,
         layout: Layout<'_>,
         _cursor_position: Point,
-    ) -> (Primitive, MouseCursor) {
+        _viewport: &Rectangle
+    ) -> (Primitive, Interaction) {
         (
             Primitive::Quad {
                 bounds: layout.bounds(),
                 background: Background::Color(self.color.clone().into()),
-                border_radius: 0,
-                border_width: 1,
+                border_radius: 0.0,
+                border_width: 1.0,
                 border_color: self.border_color,
             },
-            MouseCursor::OutOfBounds,
+            Interaction::Idle,
         )
     }
 
@@ -97,13 +99,10 @@ impl<Message:Clone> Widget<Message, Renderer> for ColorBox<Message> {
         messages: &mut Vec<Message>,
         _renderer: &Renderer,
         _clipboard: Option<&dyn Clipboard>,
-    ) {
+    ) -> event::Status {
         if let Some(ref msg) = self.press_message {
             match event {
-                Event::Mouse(mouse::Event::Input {
-                                 button: mouse::Button::Left,
-                                 state: ButtonState::Pressed,
-                             }) => {
+                Event::Mouse(mouse::Event::ButtonPressed (mouse::Button::Left)) => {
                     if layout.bounds().contains(cursor_position) {
                         messages.push(msg.clone())
                     }
@@ -116,7 +115,9 @@ impl<Message:Clone> Widget<Message, Renderer> for ColorBox<Message> {
                 messages.push(msg.clone())
             }
         };
+        event::Status::Ignored
     }
+
 }
 
 impl<'a, M: 'a + Clone> Into<Element<'a,M>> for ColorBox<M> {
@@ -147,8 +148,9 @@ impl<Message: Clone> Widget<Message, Renderer> for MouseListener<Message> {
         _defaults: &Defaults,
         _layout: Layout<'_>,
         _cursor_position: Point,
-    ) -> (Primitive, MouseCursor) {
-        (Primitive::None, MouseCursor::OutOfBounds)
+        _viewport: &Rectangle,
+    ) -> (Primitive, Interaction) {
+        (Primitive::None, Interaction::Idle)
     }
 
     fn hash_layout(&self, state: &mut iced_native::Hasher) {
@@ -161,13 +163,11 @@ impl<Message: Clone> Widget<Message, Renderer> for MouseListener<Message> {
                 _cursor_position: Point,
                 messages: &mut Vec<Message>,
                 _renderer: &Renderer,
-                _clipboard: Option<&dyn Clipboard>) {
-        if let Event::Mouse(mouse::Event::Input{state, button: mouse::Button::Left}) = event {
-            match state {
-                ButtonState::Pressed => {},
-                ButtonState::Released => {messages.push(self.0.clone())},
-            }
+                _clipboard: Option<&dyn Clipboard>) -> event::Status {
+        if matches!(event, Event::Mouse(mouse::Event::ButtonReleased(mouse::Button::Left))) {
+            messages.push(self.0.clone())
         }
+        event::Status::Ignored
     }
 }
 #[derive(Debug, Copy, Clone)]
@@ -289,7 +289,8 @@ impl<Message> Widget<Message, Renderer> for Gradient
         _defaults: &Defaults,
         layout: Layout<'_>,
         _cursor_position: Point,
-    ) -> (Primitive, MouseCursor) {
+        _viewport: &Rectangle,
+    ) -> (Primitive, Interaction) {
         let b = layout.bounds();
 
         let w = b.width;
@@ -306,10 +307,10 @@ impl<Message> Widget<Message, Renderer> for Gradient
         }).collect();
 
         (Primitive::Mesh2D {
-                    origin: Point {x: b.x, y: b.y},
+                    size: iced::Size {width: b.x, height: b.y},
                     buffers: Mesh2D {vertices, indices },
                 },
-            MouseCursor::OutOfBounds,
+            Interaction::Idle,
         )
     }
 }

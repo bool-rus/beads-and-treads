@@ -13,7 +13,7 @@ pub enum Message<T: Debug + Send + Sync> {
     Move(Coord),
     GridUpdated(Arc<T>),
     Rotate(isize),
-    SetRotation(f32),
+    SetRotation(isize),
     ZoomIn,
     ZoomOut,
     MouseRelease,
@@ -104,16 +104,18 @@ impl<T: AsRef<BeadGrid> + Debug + Send + Sync + Clone + GetSchema> AppWidget for
             .height(Length::Fill)
             .align_y(Align::Center)
             .align_x(Align::Center);
+        let width = width as i32;
+        let slider = Element::new(Slider::new(
+            &mut self.slider,
+            (-width)..=width,
+            self.rotation as i32,
+            |v|{Message::SetRotation(v as isize)}
+        ).width(Length::FillPortion(8)));
         Column::new().push(grid).push(Row::new()
             .push(Container::new(
                 Button::new(&mut self.rot_l, Text::new("<")).on_press(Message::Rotate(-1))
             ).width(Length::FillPortion(1)).align_x(Align::Start))
-            .push(Slider::new(
-                &mut self.slider,
-                -1.0..=1.0,
-                (self.rotation as f32)/(width as f32),
-                |v|{Message::SetRotation(v)}
-            ).width(Length::FillPortion(8)))
+            .push(slider)
             .push(Container::new(
                 Button::new(&mut self.rot_r, Text::new(">")).on_press(Message::Rotate(1))
             ).width(Length::FillPortion(1)).align_x(Align::End))
@@ -126,11 +128,7 @@ impl<T: AsRef<BeadGrid> + Debug + Send + Sync + Clone + GetSchema> AppWidget for
             MouseRelease => self.mouse_hold = false,
             GridUpdated(model) => self.grid_ref = model,
             Rotate(rotation) => { self.rotation += rotation; }
-            SetRotation(rotation) => {
-                let width = self.grid_ref.as_ref().as_ref().width() as f32;
-                let rotation = width*rotation;
-                self.rotation = rotation.round() as isize;
-            }
+            SetRotation(rotation) => {self.rotation = rotation; }
             ZoomIn => { self.half_size += 1; }
             ZoomOut => if self.half_size > 1 { self.half_size -= 1; },
             Press(..) => self.mouse_hold = true,

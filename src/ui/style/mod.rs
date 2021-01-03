@@ -8,18 +8,14 @@ pub struct ColorButton(pub Color);
 impl button::StyleSheet for ColorButton {
     fn active(&self) -> Style {
         Style {
-            shadow_offset: Default::default(),
             background: Some(Background::Color(self.0.clone())),
-            border_radius: 0,
-            border_width: 0,
-            border_color: Color::TRANSPARENT,
-            text_color: Color::BLACK,
+            ..Default::default()
         }
     }
 
     fn disabled(&self) -> Style {
         Style {
-            border_width: 2,
+            border_width: 2.0,
             border_color: Color::BLACK,
             ..self.active()
         }
@@ -40,11 +36,11 @@ impl slider::StyleSheet for Colored {
             handle: slider::Handle {
                 shape: slider::HandleShape::Rectangle {
                     width: 8,
-                    border_radius: 4,
+                    border_radius: 4.0,
                 },
                 color: self.0,
                 border_color: Color::from_rgb(0.6, 0.6, 0.6),
-                border_width: 1,
+                border_width: 1.0,
             },
         }
     }
@@ -68,8 +64,8 @@ impl button::StyleSheet for ToggledOn {
                 b: 0.5,
                 a: 1.0
             })),
-            border_radius: 0,
-            border_width: 0,
+            border_radius: 0.0,
+            border_width: 0.0,
             border_color: Color::BLACK,
             text_color: Color::BLACK,
         }
@@ -81,8 +77,8 @@ impl button::StyleSheet for FSMenuItem {
         Style {
             shadow_offset: Default::default(),
             background: None,
-            border_radius: 0,
-            border_width: 0,
+            border_radius: 0.0,
+            border_width: 0.0,
             border_color: Color::BLACK,
             text_color: Color::BLACK,
         }
@@ -92,8 +88,8 @@ impl button::StyleSheet for FSMenuItem {
         Style {
             shadow_offset: Default::default(),
             background: Some(Background::Color(Color::BLACK)),
-            border_radius: 0,
-            border_width: 0,
+            border_radius: 0.0,
+            border_width: 0.0,
             border_color: Color::WHITE,
             text_color: Color::WHITE
         }
